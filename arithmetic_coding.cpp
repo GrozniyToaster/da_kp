@@ -10,7 +10,7 @@ auto read_raw_var(Input& input, Var& v) -> decltype(input.read(reinterpret_cast<
 }
 template<typename Input>
 auto read_raw_var(Input& input, vector<bool>& v) -> decltype(input.read(reinterpret_cast<char*>(&v), sizeof(unsigned char))) {
-    auto size = v.size();
+    uint16_t size;
     if (!input.read(reinterpret_cast<char*>(&size), sizeof(size))) return input;
     v.reserve(size);
     auto real_size = (size / 8) + ((size % 8) ? 1 : 0);
@@ -37,7 +37,7 @@ auto write_raw_var(Input& input, const Var& v) -> decltype(input.write(reinterpr
 
 template<typename Input>
 auto write_raw_var(Input& input, const vector<bool>& v) -> decltype(input.write(reinterpret_cast<const char*>(&v), sizeof(unsigned char))) {
-    auto size = v.size();
+    uint16_t size = v.size();
     if (!input.write(reinterpret_cast<const char*>(&size), sizeof(size))) return input;
     unsigned char one_byte = 0;
     auto count_bytes = 0;
