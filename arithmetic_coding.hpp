@@ -6,10 +6,10 @@
 #include <vector>
 #include <fstream>
 #include <climits>
-
-
-
-namespace Arithmetic {
+#include <map>
+#include <queue>
+#include <cstddef>
+namespace Huffman {
     void encode(std::string& input, std::ostream& out);
     void decode(std::ifstream& input, std::ostream& out);
 }
