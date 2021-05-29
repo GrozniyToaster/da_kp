@@ -9,20 +9,20 @@ auto read_raw_var(Input& input, Var& v) -> decltype(input.read(reinterpret_cast<
     return input.read(reinterpret_cast<char*>(&v), sizeof(v));
 }
 template<typename Input>
-auto read_raw_var(Input& input, vector<bool>& v) -> decltype(input.read(reinterpret_cast<char*>(&v), sizeof(unsigned char))) {
+Input& read_raw_var(Input& input, vector<bool>& v) {
     uint16_t size;
-    if (!input.read(reinterpret_cast<char*>(&size), sizeof(size))) return input;
+    if (!read_raw_var(input, size)) return input;
     v.reserve(size);
     auto real_size = (size / 8) + ((size % 8) ? 1 : 0);
     unsigned char one_byte;
     for (int i = 0; i < real_size - 1; i++) {
-        input.read(reinterpret_cast<char*>(&one_byte), sizeof(one_byte));
+        read_raw_var(input, one_byte);
         for (int j = 7; j >= 0; --j) {
             v.push_back((one_byte >> j) & 1);
         }
         size -= 8;
     }
-    input.read(reinterpret_cast<char*>(&one_byte), sizeof(one_byte));
+    read_raw_var(input, one_byte);;
     int back_border = 8 - size;
     for (int j = 7; j >= back_border; --j) {
         v.push_back((one_byte >> j) & 1);
@@ -30,15 +30,15 @@ auto read_raw_var(Input& input, vector<bool>& v) -> decltype(input.read(reinterp
     return input;
 }
 
-template<typename Input, typename Var>
-auto write_raw_var(Input& input, const Var& v) -> decltype(input.write(reinterpret_cast<const char*>(&v), sizeof(v))) {
-    return input.write(reinterpret_cast<const char*>(&v), sizeof(v));
+template<typename Output, typename Var>
+Output& write_raw_var(Output& output, const Var& v) {
+    return output.write(reinterpret_cast<const char*>(&v), sizeof(v));
 }
 
-template<typename Input>
-auto write_raw_var(Input& input, const vector<bool>& v) -> decltype(input.write(reinterpret_cast<const char*>(&v), sizeof(unsigned char))) {
+template<typename Output>
+Output& write_raw_var(Output& output, const vector<bool>& v){
     uint16_t size = v.size();
-    if (!input.write(reinterpret_cast<const char*>(&size), sizeof(size))) return input;
+    if (! write_raw_var( output, size)) return output;
     unsigned char one_byte = 0;
     auto count_bytes = 0;
     for (int i = 0; i < size; ++i) {
@@ -46,15 +46,15 @@ auto write_raw_var(Input& input, const vector<bool>& v) -> decltype(input.write(
         one_byte |= v[i];
         count_bytes++;
         if (count_bytes == 8) {
-            input.write(reinterpret_cast<const char*>(&one_byte), sizeof(one_byte));
+            write_raw_var(output, one_byte);
             count_bytes = 0;
         }
     }
     if (count_bytes) {
         one_byte <<= (8 - count_bytes);
-        input.write(reinterpret_cast<const char*>(&one_byte), sizeof(one_byte));
+        write_raw_var(output, one_byte);
     }
-    return input;
+    return output;
 }
 
 byte get_byte(const vector<bool>& v, size_t start, size_t finish) {
@@ -101,13 +101,15 @@ struct Node {
     Node(unsigned char c) : c(c) {}
     Node(Node* l, Node* r) : left(l), right(r) {}
 };
-struct Compare {
-    bool operator()(pair<uint32_t, Node*> l, pair<uint32_t, Node*> r) {
-        return l.first > r.first;
-    }
-};
+
 map<unsigned char, vector<bool>> make_table(vector<uint64_t>& pr) {
-    priority_queue<pair<uint32_t, Node*>, vector<pair<uint32_t, Node*>>, Compare> q;
+    using  w_node = pair<uint32_t, Node*>;
+    struct Compare {
+        bool operator()(w_node& l, w_node& r) {
+            return l.first > r.first;
+        }
+    };
+    priority_queue<w_node, vector<w_node>, Compare> q;
     for (uint16_t i = 0; i < ALPHABET_SIZE; ++i) {
         if (pr[i] == 0) continue;
         Node* tmp = new Node(static_cast<unsigned char>(i));
