@@ -1,4 +1,4 @@
-#include "arithmetic_coding.hpp"
+#include "huffman.hpp"
 using namespace std;
 
 
@@ -18,14 +18,14 @@ auto read_raw_var(Input& input, vector<bool>& v) -> decltype(input.read(reinterp
     for (int i = 0; i < real_size - 1; i++) {
         input.read(reinterpret_cast<char*>(&one_byte), sizeof(one_byte));
         for (int j = 7; j >= 0; --j) {
-            v.push_back( (one_byte >> j) & 1);
+            v.push_back((one_byte >> j) & 1);
         }
         size -= 8;
     }
     input.read(reinterpret_cast<char*>(&one_byte), sizeof(one_byte));
     int back_border = 8 - size;
     for (int j = 7; j >= back_border; --j) {
-        v.push_back( (one_byte >> j) & 1);
+        v.push_back((one_byte >> j) & 1);
     }
     return input;
 }
@@ -57,9 +57,9 @@ auto write_raw_var(Input& input, const vector<bool>& v) -> decltype(input.write(
     return input;
 }
 
-byte get_byte(const vector<bool>& v, size_t start, size_t finish){
-    byte res {0};
-    for (int i = 0; i < min(finish - start, 8ul); i++){
+byte get_byte(const vector<bool>& v, size_t start, size_t finish) {
+    byte res{0};
+    for (int i = 0; i < min(finish - start, 8ul); i++) {
         res <<= 1;
         res |= byte{v[start + i]};
     }
@@ -133,9 +133,6 @@ map<unsigned char, vector<bool>> make_table(vector<uint64_t>& pr) {
         if (cur_node->left == nullptr && cur_node->right == nullptr) {
             res[cur_node->c] = code;
         } else {
-            //if (cur_node->left == nullptr || cur_node->right == nullptr){
-                //throw "nonono";
-            //}
             auto copy_code = code;
             copy_code.push_back(0);
             dfs.emplace(cur_node->left, move(copy_code));
@@ -156,20 +153,18 @@ void update_and_write_byte(Byte& b, const vector<bool>& to_write, ostream& out) 
         b.code <<= b.size;
         b.code |= get_byte(to_write, 0, b.size);
         write_raw_var(out, b.code);
-        for(size_t i = b.size; i < to_write.size(); i+= 8){
-            if (i + 8 >= to_write.size()){
+        for (size_t i = b.size; i < to_write.size(); i += 8) {
+            if (i + 8 >= to_write.size()) {
                 b.code = get_byte(to_write, i, to_write.size());
                 b.size = 8 - (to_write.size() - i);
                 break;
             } else {
-                b.code = get_byte(to_write, i,  i + 8);
+                b.code = get_byte(to_write, i, i + 8);
                 write_raw_var(out, b.code);
             }
-
         }
-
     }
-    if (b.size == 0){
+    if (b.size == 0) {
         write_raw_var(out, b.code);
         b.size = 8;
     }
@@ -186,25 +181,18 @@ void Huffman::encode(string& input, ostream& out) {
     ifstream second_watch(input, std::ios_base::in | std::ios::binary);
     auto probability = find_letters_probability(first_watch);
     auto table = make_table(probability);
-    for (auto& [ch, v]: table){
-        cout << ch << ' ';
-        for (auto b: v){
-            cout << b;
-        }
-        cout << '\n';
-    }
     unsigned char c;
-    Byte tbyte;
-    tbyte.size = 8;// Available bits
+    Byte temp_byte;
+    temp_byte.size = 8;// Available bits
     write_raw_var(out, static_cast<uint16_t>(table.size()));
     for (auto& [ch, code] : table) {
         write_raw_var(out, ch);
         write_raw_var(out, code);
     }
     while (read_raw_var(second_watch, c)) {
-        update_and_write_byte(tbyte, table[c], out);
+        update_and_write_byte(temp_byte, table[c], out);
     }
-    write_last_byte(tbyte, out);
+    write_last_byte(temp_byte, out);
 }
 
 map<unsigned char, vector<bool>> read_table(istream& input) {
@@ -225,7 +213,7 @@ Node* make_tree(map<unsigned char, vector<bool>>& table) {
     Node* root = new Node(nullptr, nullptr);
     for (auto& [ch, b] : table) {
         Node** cur = &root;
-        for (auto && cur_bit : b) {
+        for (auto&& cur_bit : b) {
             if (*cur == nullptr) {
                 *cur = new Node(nullptr, nullptr);
             }
@@ -239,20 +227,6 @@ Node* make_tree(map<unsigned char, vector<bool>>& table) {
             *cur = new Node(ch);
         }
     }
-    queue<Node*> dfs;
-    dfs.emplace(root);
-    while (!dfs.empty()){
-        auto c = dfs.front();
-        if (c->left == nullptr && c->right == nullptr){
-
-        } else if (c->left == nullptr || c->right == nullptr) {
-            throw "wtf";
-        } else {
-            dfs.push(c->left);
-            dfs.push(c->right);
-        }
-        dfs.pop();
-    }
     return root;
 }
 
@@ -261,7 +235,6 @@ void decode_byte(byte b, ostream& out, Node* tree, Node*& p, uint16_t back_offse
         write_raw_var(out, p->c);
         p = tree;
     }
-    auto save = p;
     for (int i = 7; i >= back_offset; --i) {
         bool direction = ((b >> i) & byte{1}) == byte{1};
         p = (direction) ? p = p->right : p = p->left;
@@ -278,13 +251,6 @@ void decode_byte(byte b, ostream& out, Node* tree, Node*& p, uint16_t back_offse
 
 void Huffman::decode(ifstream& input, ostream& out) {
     auto table = read_table(input);
-    for (auto& [ch, v]: table){
-        cout << int(ch) << ' ';
-        for (auto b: v){
-            cout << b;
-        }
-        cout << '\n';
-    }
     auto tree = make_tree(table);
     queue<byte> q;
     byte tb;

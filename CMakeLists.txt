@@ -12,8 +12,8 @@ add_library(lzw SHARED
         lzw.hpp)
 
 add_library(Arithmetic SHARED
-        arithmetic_coding.cpp
-        arithmetic_coding.hpp)
+        huffman.cpp
+        huffman.hpp)
 
 add_executable(kp
         main.cpp )

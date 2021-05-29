@@ -1,8 +1,7 @@
 //
 // Created by ivan- on 08.05.2021.
 //
-#include <sstream>
-#include "arithmetic_coding.hpp"
+#include "huffman.hpp"
 #include "lzw.hpp"
 #include <iostream>
 #include <sstream>
