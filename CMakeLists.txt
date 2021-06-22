@@ -9,15 +9,22 @@ set(CMAKE_CXX_COMPILER "clang++")
 
 add_library(lzw SHARED
         lzw.cpp
-        lzw.hpp)
+        lzw.hpp
+        utils.hpp)
 
-add_library(Arithmetic SHARED
+
+
+add_library(Huffman SHARED
         huffman.cpp
-        huffman.hpp)
+        huffman.hpp
+        utils.hpp)
+
+
 
 add_executable(kp
-        main.cpp )
+        main.cpp)
 
-target_link_libraries(kp lzw Arithmetic)
+target_link_libraries(kp lzw Huffman)
+
 
 add_executable(kek kek.cpp)

@@ -20,14 +20,15 @@ int main() {
      */
         std::string filename, to_save;
         std::cin >> filename >> to_save;
+        std::ifstream i(filename);
         std::ofstream s(to_save,  std::ios::out | std::ios::binary );
-        Huffman::encode(filename, s);
+        LZW::encode(i, s);
     } else if (comand == "decompress") {
         std::string filename, to_save;
         std::cin >> filename >> to_save;
         std::ifstream f (filename, std::ios_base::in | std::ios::binary);
         std::ofstream s (to_save, std::ios_base::out |std::ios::binary);
-        Huffman::decode(f, s);
+        LZW::decode(f, s);
         std::cout << '\n';
         return 0;
     } else {

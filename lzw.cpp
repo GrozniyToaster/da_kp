@@ -11,11 +11,11 @@ const uint16_t EOF_CODE = 26;
 unordered_map<string, uint16_t> encode_dict() {
     unordered_map<string, uint16_t> dict;
     uint16_t count = 0;
-    for (auto i = 'a'; i <= 'z'; i++) {
-        dict[string(1, i)] = count;
+    for (unsigned char i = 0; i < UINT8_MAX; i++) {
+        dict[string(1, i + 1)] = count;
         count++;
     }
-    dict[string(1, '\0')] = EOF_CODE;
+    // dict[string(1, '\0')] = EOF_CODE;
     return dict;
 }
 
@@ -23,14 +23,15 @@ void LZW::encode(istream& input, ostream& out) {
     auto dict = encode_dict();
     uint16_t count = dict.size();
     char cur_ch;
-    if (!(input >> cur_ch)) {
-        cur_ch = '\0';
+    if (!read_raw_var(input, cur_ch)) {
+        //cur_ch = '\0';
+        return;
     }
     string cur_str(1, cur_ch);
     while (true) {
         bool to_break = false;
-        if (!(input >> cur_ch)) {
-            cur_ch = '\0';
+        if (!read_raw_var(input, cur_ch)) {
+            //cur_ch = '\0';
             to_break = true;
         }
         if (dict.count(cur_str + cur_ch)) {
@@ -55,11 +56,11 @@ void LZW::encode(istream& input, ostream& out) {
 unordered_map<uint16_t, string> decode_dict() {
     uint16_t count = 0;
     unordered_map<uint16_t, string> dict;
-    for (auto i = 'a'; i <= 'z'; i++) {
-        dict[count] = i;
+    for (unsigned char i = 0; i < UINT8_MAX; i++) {
+        dict[count] = i + 1;
         count++;
     }
-    dict[EOF_CODE] = '\0';
+    // dict[EOF_CODE] = '\0';
     return dict;
 }
 
@@ -68,14 +69,14 @@ void LZW::decode(istream& input, ostream& out) {
     uint16_t count = dict.size();
 
     uint16_t old_code;
-    input >> old_code;
+    if (!(input >> old_code)) return;
     out << dict[old_code];
     char symbol = dict[old_code][0];
     uint16_t new_code;
     while (input >> new_code) {
-        if (new_code == EOF_CODE) {
-            break;
-        }
+        //if (new_code == EOF_CODE) {
+        //    break;
+        //}
         string str;
         if (!dict.count(new_code)) {
             str = dict[old_code];
@@ -84,7 +85,7 @@ void LZW::decode(istream& input, ostream& out) {
         } else {
             str = dict[new_code];
         }
-        out << str << ' ';
+        out << str;
         symbol = str[0];
         dict[count] = dict[old_code] + symbol;
         count++;

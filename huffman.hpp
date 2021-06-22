@@ -9,6 +9,7 @@
 #include <map>
 #include <queue>
 #include <cstddef>
+#include "utils.hpp"
 namespace Huffman {
     void encode(std::string& input, std::ostream& out);
     void decode(std::ifstream& input, std::ostream& out);

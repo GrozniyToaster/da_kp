@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-
+#include "utils.hpp"
 
 namespace LZW {
     void encode(std::istream& input, std::ostream& out);
