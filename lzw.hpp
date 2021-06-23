@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
+#include <map>
+#include <memory>
 #include "utils.hpp"
 
 namespace LZW {
