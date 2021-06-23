@@ -16,6 +16,9 @@ Output& write_raw_var(Output& output, const Var& v);
 template<typename Output>
 Output& write_raw_var(Output& output, const std::vector<bool>& v);
 
+template<typename Output>
+Output& write_raw_var(Output& output, const std::string& s);
+
 
 template<typename Input, typename Var>
 auto read_raw_var(Input& input, Var& v) -> decltype(input.read(reinterpret_cast<char*>(&v), sizeof(v))) {
@@ -66,6 +69,14 @@ Output& write_raw_var(Output& output, const std::vector<bool>& v){
     if (count_bytes) {
         one_byte <<= (8 - count_bytes);
         write_raw_var(output, one_byte);
+    }
+    return output;
+}
+
+template<typename Output>
+Output& write_raw_var(Output& output, const std::string& s){
+    for (auto ch : s){
+        if (!write_raw_var(output, ch)) return output;
     }
     return output;
 }
