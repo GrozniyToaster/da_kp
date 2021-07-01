@@ -73,7 +73,6 @@ map<unsigned char, vector<bool>> make_table(vector<uint64_t>& pr) {
         q.emplace(new_w, new_node);
     }
     auto [max_w, root] = q.top();
-    //TODO max_w == size
     queue<pair<Node*, vector<bool>>> dfs;
     dfs.emplace(root, vector<bool>());
     map<unsigned char, vector<bool>> res;
@@ -205,11 +204,11 @@ void Huffman::decode(ifstream& input, ostream& out) {
     queue<byte> q;
     byte tb;
     if (!read_raw_var(input, tb)) {
-        //TODO some
+        throw "Bad_file";
     }
     q.push(tb);
     if (!read_raw_var(input, tb)) {
-        //TODO some
+        throw "Bad_file";
     }
     q.push(tb);
     auto cur_state = tree;

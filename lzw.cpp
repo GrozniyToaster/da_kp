@@ -16,11 +16,12 @@ class Trie {
         map<uint8_t, unique_ptr<Node>> next;
 
         explicit Node(uint16_t c) : code(c) {}
-        Node(): code(0) {}
+
+        Node() : code(0) {}
     };
 
-    struct State{
-        Node* cur_node;
+    struct State {
+        Node *cur_node;
 
     };
 
@@ -31,27 +32,31 @@ public:
 
 
     Trie() : root(make_unique<Node>()), st{root.get()} {}
-    bool step(uint8_t ch){
-        auto& next =  st.cur_node->next[ch];
-        if (next == nullptr){
+
+    bool step(uint8_t ch) {
+        auto &next = st.cur_node->next[ch];
+        if (next == nullptr) {
             return false;
         } else {
             st.cur_node = next.get();
             return true;
         }
     }
-    void  add (uint8_t ch, uint16_t code) const {
+
+    void add(uint8_t ch, uint16_t code) const {
         st.cur_node->next[ch] = make_unique<Node>(code);
     }
 
-    [[nodiscard]] uint16_t get_code () const noexcept{
+    [[nodiscard]] uint16_t get_code() const noexcept {
         return st.cur_node->code;
     }
-    void state_to_root(){
+
+    void state_to_root() {
         st.cur_node = root.get();
     }
 
 };
+
 Trie encode_dict() {
     Trie dict;
     for (uint16_t i = 0; i <= UINT8_MAX; i++) {
@@ -88,13 +93,15 @@ void LZW::encode(istream &input, ostream &out) {
     }
     write_raw_var(out, dict.get_code());
 }
+
 vector<string> decode_dict() {
-    vector<string> dict (DEFAULT_DICT_SIZE);
+    vector<string> dict(DEFAULT_DICT_SIZE);
     for (uint16_t i = 0; i <= UINT8_MAX; i++) {
         dict[i] = static_cast<char>(i);
     }
     return dict;
 }
+
 void LZW::decode(istream &input, ostream &out) {
     auto dict = decode_dict();
     size_t count = dict.size();
